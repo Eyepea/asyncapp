@@ -9,21 +9,14 @@ LOG = logging.getLogger(__name__)
 
 async def start(http_runner, custom_app_runner):
 
-    await http_runner.setup()
+    await asyncio.gather(http_runner.setup(), custom_app_runner.setup())
 
     http_tcp_site = asyncapp.sites.TCPSite(http_runner, 'localhost', 8080)
-    await http_tcp_site.start()
-
     http_unix_site = asyncapp.sites.UnixSite(http_runner, 'http_unix_site_socket')
-    await http_unix_site.start()
-
-    await custom_app_runner.setup()
-
     custom_app_tcp_site = asyncapp.sites.TCPSite(custom_app_runner, 'localhost', 8081)
-    await custom_app_tcp_site.start()
-
     custom_app_udp_site = asyncapp.sites.UDPSite(custom_app_runner, 'localhost', 8081)
-    await custom_app_udp_site.start()
+
+    await asyncio.gather(http_tcp_site.start(), http_unix_site.start(), custom_app_tcp_site.start(), custom_app_udp_site.start())
 
 
 async def cleanup(http_runner, custom_app_runner):
